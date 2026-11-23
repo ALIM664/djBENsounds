@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>djBENsounds</title>
+
+<style>
+body {
+    background: #220000;
+    color: #ffff00;
+    font-family: Arial;
+    display: block;
+    justify-content: center;
+    padding-top: 10px;
+    text-align: center;
+}
+
+.player {
+    background: #990000;
+    padding: 25px;
+    border-radius: 15px;
+    min-width: 500px;
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+    text-align: center;
+}
+
+h1 {
+    color: #ff0000;
+    -webkit-text-stroke: #ffff00 5px;
+    font-size: 100px;
+}
+
+h2 {
+    margin-top: 0;
+    color: #ffff00;
+    -webkit-text-stroke: #000000 3px;
+    text-shadow: #00000099 -5px 5px 3px;
+    font-size: 50px;
+}
+
+button, a {
+    background: #ff0000;
+    color: #ffff00;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 30px;
+    text-decoration: none;
+    -webkit-text-stroke: #000000 2px;
+    font-weight: 900;
+    box-shadow: #00000099 -5px 5px 3px;
+    transition: all 0.2s;
+    margin: 10px;
+}
+
+button:hover, a:hover {
+    background: #ffff00;
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+button:active, a:active {
+    box-shadow: #00000099 -2px 2px 1px;
+    transform: scale(0.9);
+}
+
+#seek {
+    width: 100%;
+    margin: 15px 0;
+    appearance: none;
+    height: 6px;
+    border-radius: 10px;
+    outline: none;
+    background: linear-gradient(to right, #ff9900 0%, #550000 0%);
+    cursor: pointer;
+}
+
+#seek::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffff00;
+}
+
+#seek::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: #ffff00;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #ffff00;
+    margin-top: 5px;
+}
+
+#download {
+    display: inline-block;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>djBENsounds</h1>
+
+<div class="player">
+
+    <h2>Game Battle</h2>
+
+    <audio id="audio">
+        <source src="https://raw.githubusercontent.com/ALIM664/djBENsounds/main/Game Battle.mp3" type="audio/mpeg">
+    </audio>
+
+    <input
+        type="range"
+        id="seek"
+        min="0"
+        max="0"
+        value="0"
+        step="0.01"
+        disabled
+    >
+
+    <div class="time">
+        <span id="current">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button id="play">PLAY</button>
+
+    <a id="download" href="https://raw.githubusercontent.com/ALIM664/djBENsounds/main/Game Battle.mp3" download="Game Battle.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+<script>
+const audio = document.getElementById("audio");
+const playButton = document.getElementById("play");
+const seek = document.getElementById("seek");
+
+const currentText = document.getElementById("current");
+const durationText = document.getElementById("duration");
+
+function formatTime(seconds) {
+    if (!Number.isFinite(seconds)) return "0:00";
+
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+
+    return minutes + ":" + String(secs).padStart(2, "0");
+}
+
+// Загружаем длительность аудио
+audio.addEventListener("loadedmetadata", () => {
+    seek.max = audio.duration;
+    seek.disabled = false;
+
+    durationText.textContent = formatTime(audio.duration);
+
+    updateSlider();
+});
+
+// Кнопка играть / пауза
+playButton.addEventListener("click", async () => {
+    if (audio.paused) {
+        try {
+            await audio.play();
+        } catch (error) {
+            console.error("Не удалось воспроизвести аудио:", error);
+        }
+    } else {
+        audio.pause();
+    }
+});
+
+// Обновляем текст кнопки
+audio.addEventListener("play", () => {
+    playButton.textContent = "PAUSE";
+});
+
+audio.addEventListener("pause", () => {
+    playButton.textContent = "PLAY";
+});
+
+// Обновляем время и ползунок
+audio.addEventListener("timeupdate", () => {
+    seek.value = audio.currentTime;
+    currentText.textContent = formatTime(audio.currentTime);
+
+    updateSlider();
+});
+
+// Перемотка аудио
+seek.addEventListener("input", () => {
+    audio.currentTime = Number(seek.value);
+    currentText.textContent = formatTime(audio.currentTime);
+
+    updateSlider();
+});
+
+// Визуальное заполнение ползунка
+function updateSlider() {
+    const progress = audio.duration
+        ? (audio.currentTime / audio.duration) * 100
+        : 0;
+
+    seek.style.background =
+        `linear-gradient(to right, #ff9900 ${progress}%, #550000 ${progress}%)`;
+}
+
+// Когда аудио закончилось
+audio.addEventListener("ended", () => {
+    audio.currentTime = 0;
+    seek.value = 0;
+    playButton.textContent = "PLAY";
+    updateSlider();
+});
+</script>
+
+</body>
+</html>
