@@ -3,6 +3,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>djBENsounds</title>
 
 <style>
@@ -10,27 +11,27 @@ body {
     background: #220000;
     color: #ffff00;
     font-family: Arial;
-    display: block;
-    justify-content: center;
     padding-top: 10px;
     text-align: center;
+    counter-reset: player-number;
 }
 
 .player {
     background: #990000;
     padding: 25px;
     border-radius: 15px;
-    min-width: 500px;
     width: 90%;
-    margin-left: 5%;
-    margin-right: 5%;
+    max-width: 800px;
+    margin: 25px auto;
     text-align: center;
+    box-sizing: border-box;
+    counter-increment: player-number;
 }
 
 h1 {
     color: #ff0000;
     -webkit-text-stroke: #ffff00 5px;
-    font-size: 100px;
+    font-size: 140px;
 }
 
 h2 {
@@ -40,6 +41,14 @@ h2 {
     text-shadow: #00000099 -5px 5px 3px;
     font-size: 50px;
 }
+
+/* НУМЕРАЦИЯ */
+
+.player h2::before {
+    content: counter(player-number) ". ";
+}
+
+/* ОБЫЧНЫЕ КНОПКИ */
 
 button, a {
     background: #ff0000;
@@ -68,7 +77,45 @@ button:active, a:active {
     transform: scale(0.9);
 }
 
-#seek {
+/* ПАНЕЛЬ УПРАВЛЕНИЯ СПРАВА */
+
+.side-controls {
+    position: fixed;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+    background-color: #990000;
+    width: 175px;
+    height: 100vh;
+}
+
+.side-controls button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 155px;
+    height: 20%;
+    margin: 10;
+    padding: 12px 8px;
+    font-size: 17px;
+    -webkit-text-stroke: 0;
+    font-weight: 900;
+}
+
+/* АКТИВНЫЕ РЕЖИМЫ */
+
+.side-controls button.active {
+    background: #ffff00;
+    color: #ff0000;
+}
+
+/* ПОЛЗУНОК */
+
+.seek {
     width: 100%;
     margin: 15px 0;
     appearance: none;
@@ -79,7 +126,7 @@ button:active, a:active {
     cursor: pointer;
 }
 
-#seek::-webkit-slider-thumb {
+.seek::-webkit-slider-thumb {
     appearance: none;
     width: 16px;
     height: 16px;
@@ -87,13 +134,20 @@ button:active, a:active {
     background: #ffff00;
 }
 
-#seek::-moz-range-thumb {
+.seek::-moz-range-thumb {
     width: 16px;
     height: 16px;
     border: none;
     border-radius: 50%;
     background: #ffff00;
 }
+
+.seek:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+/* ВРЕМЯ */
 
 .time {
     display: flex;
@@ -103,9 +157,43 @@ button:active, a:active {
     margin-top: 5px;
 }
 
-#download {
+/* СКАЧИВАНИЕ */
+
+.download {
     display: inline-block;
     margin-top: 20px;
+}
+
+/* МОБИЛЬНЫЕ УСТРОЙСТВА */
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 55px;
+        -webkit-text-stroke: 3px #ffff00;
+    }
+
+    h2 {
+        font-size: 35px;
+    }
+
+    .side-controls {
+        right: 5px;
+        gap: 7px;
+    }
+
+    .side-controls button {
+        width: 105px;
+        font-size: 12px;
+        padding: 10px 5px;
+    }
+
+    button, a {
+        font-size: 23px;
+    }
+
+    .player {
+        width: 94%;
+    }
 }
 </style>
 </head>
@@ -114,121 +202,758 @@ button:active, a:active {
 
 <h1>djBENsounds</h1>
 
+
+<!-- ПАНЕЛЬ УПРАВЛЕНИЯ -->
+
+<div class="side-controls">
+
+    <button id="repeatTrack">
+        ↻ 1
+    </button>
+
+    <button id="repeatAll">
+        ⟲
+    </button>
+
+    <button id="previousTrack">
+        ▲
+    </button>
+
+    <button id="nextTrack">
+        ▼
+    </button>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 1 -->
+<!-- ================================= -->
+
 <div class="player">
 
     <h2>Game Battle</h2>
 
-    <audio id="audio">
-        <source src="https://raw.githubusercontent.com/ALIM664/djBENsounds/main/Game Battle.mp3" type="audio/mpeg">
-    </audio>
+    <audio class="audio" src="Game%20Battle.mp3"></audio>
 
-    <input
-        type="range"
-        id="seek"
-        min="0"
-        max="0"
-        value="0"
-        step="0.01"
-        disabled
-    >
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
 
     <div class="time">
-        <span id="current">0:00</span>
-        <span id="duration">0:00</span>
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
     </div>
 
     <br><br>
 
-    <button id="play">PLAY</button>
+    <button class="play">PLAY</button>
 
-    <a id="download" href="https://raw.githubusercontent.com/ALIM664/djBENsounds/main/Game Battle.mp3" download="Game Battle.mp3">
+    <br>
+
+    <a class="download"
+       href="Game%20Battle.mp3"
+       download="Game Battle.mp3">
         DOWNLOAD
     </a>
 
 </div>
 
-<script>
-const audio = document.getElementById("audio");
-const playButton = document.getElementById("play");
-const seek = document.getElementById("seek");
 
-const currentText = document.getElementById("current");
-const durationText = document.getElementById("duration");
+<!-- ================================= -->
+<!-- ПЛЕЕР 2 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Plan Z</h2>
+
+    <audio class="audio" src="Plan%20Z.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Plan%20Z.mp3"
+       download="Plan Z.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 3 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>GO</h2>
+
+    <audio class="audio" src="GO.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="GO.mp3"
+       download="GO.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 4 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Mega Destruction</h2>
+
+    <audio class="audio" src="Mega%20Destruction.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Mega%20Destruction.mp3"
+       download="Mega Destruction.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 5 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>What is This..</h2>
+
+    <audio class="audio" src="What%20is%20This..mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="What%20is%20This..mp3"
+       download="What is This..mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 6 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Tomber</h2>
+
+    <audio class="audio" src="Tomber.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Tomber.mp3"
+       download="Tomber.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 7 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Deadly Road</h2>
+
+    <audio class="audio" src="Deadly%20Road.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Deadly%20Road.mp3"
+       download="Deadly Road.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 8 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Ritual Room</h2>
+
+    <audio class="audio" src="Ritual%20Room.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Ritual%20Room.mp3"
+       download="Ritual Room.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 9 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>Red Flag</h2>
+
+    <audio class="audio" src="Red%20Flag.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="Red%20Flag.mp3"
+       download="Red Flag.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- ПЛЕЕР 10 -->
+<!-- ================================= -->
+
+<div class="player">
+
+    <h2>The Real Aikido</h2>
+
+    <audio class="audio" src="The%20Real%20Aikido.mp3"></audio>
+
+    <input type="range" class="seek"
+        min="0" max="0" value="0"
+        step="0.01" disabled>
+
+    <div class="time">
+        <span class="current">0:00</span>
+        <span class="duration">0:00</span>
+    </div>
+
+    <br><br>
+
+    <button class="play">PLAY</button>
+
+    <br>
+
+    <a class="download"
+       href="The%20Real%20Aikido.mp3"
+       download="The Real Aikido.mp3">
+        DOWNLOAD
+    </a>
+
+</div>
+
+
+<script>
+
+// НАХОДИМ ВСЕ ПЛЕЕРЫ
+
+const players = Array.from(
+    document.querySelectorAll(".player")
+);
+
+const audios = players.map(
+    player => player.querySelector(".audio")
+);
+
+let currentIndex = 0;
+let hasStarted = false;
+
+// РЕЖИМЫ ПОВТОРА
+
+let repeatTrack = false;
+let repeatAll = false;
+
+// КНОПКИ ПАНЕЛИ
+
+const repeatTrackButton =
+    document.getElementById("repeatTrack");
+
+const repeatAllButton =
+    document.getElementById("repeatAll");
+
+const previousButton =
+    document.getElementById("previousTrack");
+
+const nextButton =
+    document.getElementById("nextTrack");
+
+
+// ФОРМАТ ВРЕМЕНИ
 
 function formatTime(seconds) {
+
     if (!Number.isFinite(seconds)) return "0:00";
 
     const minutes = Math.floor(seconds / 60);
+
     const secs = Math.floor(seconds % 60);
 
     return minutes + ":" + String(secs).padStart(2, "0");
+
 }
 
-// Загружаем длительность аудио
-audio.addEventListener("loadedmetadata", () => {
-    seek.max = audio.duration;
-    seek.disabled = false;
 
-    durationText.textContent = formatTime(audio.duration);
+// ОБНОВЛЕНИЕ ПОЛЗУНКА
 
-    updateSlider();
-});
+function updateSlider(player) {
 
-// Кнопка играть / пауза
-playButton.addEventListener("click", async () => {
-    if (audio.paused) {
-        try {
-            await audio.play();
-        } catch (error) {
-            console.error("Не удалось воспроизвести аудио:", error);
-        }
-    } else {
-        audio.pause();
-    }
-});
+    const audio = player.querySelector(".audio");
 
-// Обновляем текст кнопки
-audio.addEventListener("play", () => {
-    playButton.textContent = "PAUSE";
-});
+    const seek = player.querySelector(".seek");
 
-audio.addEventListener("pause", () => {
-    playButton.textContent = "PLAY";
-});
-
-// Обновляем время и ползунок
-audio.addEventListener("timeupdate", () => {
-    seek.value = audio.currentTime;
-    currentText.textContent = formatTime(audio.currentTime);
-
-    updateSlider();
-});
-
-// Перемотка аудио
-seek.addEventListener("input", () => {
-    audio.currentTime = Number(seek.value);
-    currentText.textContent = formatTime(audio.currentTime);
-
-    updateSlider();
-});
-
-// Визуальное заполнение ползунка
-function updateSlider() {
     const progress = audio.duration
         ? (audio.currentTime / audio.duration) * 100
         : 0;
 
     seek.style.background =
         `linear-gradient(to right, #ff9900 ${progress}%, #550000 ${progress}%)`;
+
 }
 
-// Когда аудио закончилось
-audio.addEventListener("ended", () => {
-    audio.currentTime = 0;
-    seek.value = 0;
-    playButton.textContent = "PLAY";
-    updateSlider();
+
+// ОБНОВЛЕНИЕ РЕЖИМОВ
+
+function updateRepeatButtons() {
+
+    repeatTrackButton.classList.toggle(
+        "active",
+        repeatTrack
+    );
+
+    repeatAllButton.classList.toggle(
+        "active",
+        repeatAll
+    );
+
+    repeatTrackButton.title = repeatTrack
+        ? "Повтор текущего трека включён"
+        : "Повтор текущего трека выключен";
+
+    repeatAllButton.title = repeatAll
+        ? "Повтор всех треков включён"
+        : "Повтор всех треков выключен";
+
+    // Применяем повтор трека ко всем аудио.
+    // Одновременно играет только текущий трек.
+
+    audios.forEach(audio => {
+        audio.loop = repeatTrack;
+    });
+
+}
+
+
+// ЗАПУСК ТРЕКА
+
+async function playTrack(index) {
+
+    if (index < 0 || index >= players.length) {
+        return;
+    }
+
+    currentIndex = index;
+
+    hasStarted = true;
+
+    // Останавливаем остальные треки
+
+    audios.forEach((audio, i) => {
+
+        if (i !== index) {
+            audio.pause();
+        }
+
+    });
+
+    // Применяем текущий режим повтора
+
+    updateRepeatButtons();
+
+    const audio = audios[index];
+
+    const playButton =
+        players[index].querySelector(".play");
+
+    try {
+
+        await audio.play();
+
+        playButton.textContent = "PAUSE";
+
+    } catch (error) {
+
+        console.error(
+            "Не удалось воспроизвести аудио:",
+            audio.src,
+            error
+        );
+
+    }
+
+}
+
+
+// КНОПКИ PLAY / PAUSE У КАЖДОГО ПЛЕЕРА
+
+players.forEach((player, index) => {
+
+    const audio = player.querySelector(".audio");
+
+    const playButton = player.querySelector(".play");
+
+    const seek = player.querySelector(".seek");
+
+    const currentText = player.querySelector(".current");
+
+    const durationText = player.querySelector(".duration");
+
+
+    // ЗАГРУЗКА ДЛИТЕЛЬНОСТИ
+
+    audio.addEventListener("loadedmetadata", () => {
+
+        seek.max = audio.duration;
+
+        seek.disabled = false;
+
+        durationText.textContent =
+            formatTime(audio.duration);
+
+        updateSlider(player);
+
+    });
+
+
+    // PLAY / PAUSE
+
+    playButton.addEventListener("click", () => {
+
+        if (
+            currentIndex === index &&
+            !audio.paused
+        ) {
+
+            audio.pause();
+
+        } else {
+
+            playTrack(index);
+
+        }
+
+    });
+
+
+    // ИГРАЕТ
+
+    audio.addEventListener("play", () => {
+
+        playButton.textContent = "PAUSE";
+
+    });
+
+
+    // ПАУЗА
+
+    audio.addEventListener("pause", () => {
+
+        playButton.textContent = "PLAY";
+
+    });
+
+
+    // ОБНОВЛЕНИЕ ВРЕМЕНИ
+
+    audio.addEventListener("timeupdate", () => {
+
+        seek.value = audio.currentTime;
+
+        currentText.textContent =
+            formatTime(audio.currentTime);
+
+        updateSlider(player);
+
+    });
+
+
+    // ПЕРЕМОТКА
+
+    seek.addEventListener("input", () => {
+
+        audio.currentTime = Number(seek.value);
+
+        currentText.textContent =
+            formatTime(audio.currentTime);
+
+        updateSlider(player);
+
+    });
+
+
+    // КОНЕЦ ТРЕКА
+
+    audio.addEventListener("ended", () => {
+
+        seek.value = 0;
+
+        currentText.textContent = "0:00";
+
+        updateSlider(player);
+
+        playButton.textContent = "PLAY";
+
+        // Если повтор трека включён,
+        // браузер сам повторяет аудио.
+
+        if (repeatTrack) {
+            return;
+        }
+
+        // Автоматически запускаем следующий трек
+
+        if (index < players.length - 1) {
+
+            playTrack(index + 1);
+
+        } else if (repeatAll) {
+
+            // После последнего запускаем первый
+
+            playTrack(0);
+
+        }
+
+    });
+
+
+    // ОШИБКА ЗАГРУЗКИ
+
+    audio.addEventListener("error", () => {
+
+        console.error(
+            "Не удалось загрузить музыку:",
+            audio.src
+        );
+
+    });
+
 });
+
+
+// ПОВТОР ТЕКУЩЕГО ТРЕКА
+
+repeatTrackButton.addEventListener("click", () => {
+
+    repeatTrack = !repeatTrack;
+
+    updateRepeatButtons();
+
+});
+
+
+// ПОВТОР ВСЕХ ТРЕКОВ
+
+repeatAllButton.addEventListener("click", () => {
+
+    repeatAll = !repeatAll;
+
+    updateRepeatButtons();
+
+});
+
+
+// СЛЕДУЮЩИЙ ТРЕК
+
+function nextTrack() {
+
+    if (!hasStarted) {
+
+        playTrack(0);
+
+        return;
+
+    }
+
+    if (currentIndex < players.length - 1) {
+
+        playTrack(currentIndex + 1);
+
+    } else if (repeatAll) {
+
+        playTrack(0);
+
+    }
+
+}
+
+
+// ПРЕДЫДУЩИЙ ТРЕК
+
+function previousTrack() {
+
+    if (!hasStarted) {
+
+        playTrack(0);
+
+        return;
+
+    }
+
+    if (currentIndex > 0) {
+
+        playTrack(currentIndex - 1);
+
+    } else if (repeatAll) {
+
+        playTrack(players.length - 1);
+
+    } else {
+
+        // На первом треке начинаем его заново
+
+        audios[0].currentTime = 0;
+
+        playTrack(0);
+
+    }
+
+}
+
+
+// СОБЫТИЯ КНОПОК
+
+nextButton.addEventListener("click", nextTrack);
+
+previousButton.addEventListener("click", previousTrack);
+
+
+// НАЧАЛЬНОЕ СОСТОЯНИЕ
+
+updateRepeatButtons();
+
 </script>
 
 </body>
